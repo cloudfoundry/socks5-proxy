@@ -25,7 +25,6 @@ var _ = Describe("Socks5Proxy", func() {
 		sshServerURL       string
 		httpServerHostPort string
 		httpServer         *httptest.Server
-		proxyError         chan error
 	)
 
 	BeforeEach(func() {
@@ -42,7 +41,6 @@ var _ = Describe("Socks5Proxy", func() {
 		hostKeyGetter = &fakes.FakeKeyGetter{}
 		hostKeyGetter.GetReturns(signer.PublicKey(), nil)
 
-		proxyError = make(chan error)
 		socks5Proxy = proxy.NewSocks5Proxy(hostKeyGetter)
 	})
 
