@@ -1,7 +1,6 @@
 package proxy
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -10,6 +9,7 @@ import (
 	socks5 "github.com/armon/go-socks5"
 
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/net/context"
 )
 
 var netListen = net.Listen
