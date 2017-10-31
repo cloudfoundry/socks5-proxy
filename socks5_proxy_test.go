@@ -35,7 +35,7 @@ var _ = Describe("Socks5Proxy", func() {
 		}))
 		httpServerHostPort = strings.Split(httpServer.URL, "http://")[1]
 
-		sshServerURL = startSSHServer(httpServerHostPort)
+		sshServerURL = proxy.StartTestSSHServer(httpServerHostPort, sshPrivateKey)
 
 		var err error
 		signer, err = ssh.ParsePrivateKey([]byte(sshPrivateKey))
