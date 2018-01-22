@@ -37,7 +37,7 @@ var _ = Describe("StartTestSSHServer", func() {
 	})
 
 	It("accepts multiple requests", func() {
-		url := proxy.StartTestSSHServer(httpServerHostPort, sshPrivateKey)
+		url := proxy.StartTestSSHServer(httpServerHostPort, sshPrivateKey, "")
 
 		conn1, err := ssh.Dial("tcp", url, clientConfig)
 		Expect(err).NotTo(HaveOccurred())

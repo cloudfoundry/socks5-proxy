@@ -14,12 +14,17 @@ type KeyGetter interface {
 type HostKeyGetter struct {
 	publicKeyChannel chan ssh.PublicKey
 	dialErrorChannel chan error
+	username         string
 }
 
-func NewHostKeyGetter() HostKeyGetter {
+func NewHostKeyGetter(username string) HostKeyGetter {
+	if username == "" {
+		username = "jumpbox"
+	}
 	return HostKeyGetter{
 		publicKeyChannel: make(chan ssh.PublicKey),
 		dialErrorChannel: make(chan error),
+		username:         username,
 	}
 }
 
@@ -30,7 +35,7 @@ func (h HostKeyGetter) Get(key, serverURL string) (ssh.PublicKey, error) {
 	}
 
 	clientConfig := &ssh.ClientConfig{
-		User: "jumpbox",
+		User: h.username,
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(signer),
 		},

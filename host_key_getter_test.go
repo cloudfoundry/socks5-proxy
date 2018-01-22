@@ -20,15 +20,28 @@ var _ = Describe("HostKeyGetter", func() {
 			Expect(err).NotTo(HaveOccurred())
 			key = signer.PublicKey()
 
-			sshServerAddr = proxy.StartTestSSHServer("", sshPrivateKey)
+			sshServerAddr = proxy.StartTestSSHServer("", sshPrivateKey, "")
 
-			hostKeyGetter = proxy.NewHostKeyGetter()
+			hostKeyGetter = proxy.NewHostKeyGetter("")
 		})
 
 		It("returns the host key", func() {
 			hostKey, err := hostKeyGetter.Get(sshPrivateKey, sshServerAddr)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(hostKey).To(Equal(key))
+		})
+
+		Context("when a username has been set", func(){
+			BeforeEach(func(){
+				sshServerAddr = proxy.StartTestSSHServer("", sshPrivateKey, "different-username")
+				hostKeyGetter = proxy.NewHostKeyGetter("different-username")
+			})
+
+			It("returns the host key", func() {
+				hostKey, err := hostKeyGetter.Get(sshPrivateKey, sshServerAddr)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(hostKey).To(Equal(key))
+			})
 		})
 
 		Context("failure cases", func() {
