@@ -8,34 +8,33 @@ import (
 
 //go:generate counterfeiter . KeyGetter
 type KeyGetter interface {
-	Get(string, string) (ssh.PublicKey, error)
+	Get(string, string, string) (ssh.PublicKey, error)
 }
 
 type HostKeyGetter struct {
 	publicKeyChannel chan ssh.PublicKey
 	dialErrorChannel chan error
-	username         string
 }
 
-func NewHostKeyGetter(username string) HostKeyGetter {
-	if username == "" {
-		username = "jumpbox"
-	}
+func NewHostKeyGetter() HostKeyGetter {
 	return HostKeyGetter{
 		publicKeyChannel: make(chan ssh.PublicKey),
 		dialErrorChannel: make(chan error),
-		username:         username,
 	}
 }
 
-func (h HostKeyGetter) Get(key, serverURL string) (ssh.PublicKey, error) {
+func (h HostKeyGetter) Get(username, key, serverURL string) (ssh.PublicKey, error) {
+	if username == "" {
+		username = "jumpbox"
+	}
+
 	signer, err := ssh.ParsePrivateKey([]byte(key))
 	if err != nil {
 		return nil, err
 	}
 
 	clientConfig := &ssh.ClientConfig{
-		User: h.username,
+		User: username,
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(signer),
 		},

@@ -22,23 +22,23 @@ var _ = Describe("HostKeyGetter", func() {
 
 			sshServerAddr = proxy.StartTestSSHServer("", sshPrivateKey, "")
 
-			hostKeyGetter = proxy.NewHostKeyGetter("")
+			hostKeyGetter = proxy.NewHostKeyGetter()
 		})
 
 		It("returns the host key", func() {
-			hostKey, err := hostKeyGetter.Get(sshPrivateKey, sshServerAddr)
+			hostKey, err := hostKeyGetter.Get("", sshPrivateKey, sshServerAddr)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(hostKey).To(Equal(key))
 		})
 
-		Context("when a username has been set", func(){
-			BeforeEach(func(){
+		Context("when a username has been set", func() {
+			BeforeEach(func() {
 				sshServerAddr = proxy.StartTestSSHServer("", sshPrivateKey, "different-username")
-				hostKeyGetter = proxy.NewHostKeyGetter("different-username")
+				hostKeyGetter = proxy.NewHostKeyGetter()
 			})
 
 			It("returns the host key", func() {
-				hostKey, err := hostKeyGetter.Get(sshPrivateKey, sshServerAddr)
+				hostKey, err := hostKeyGetter.Get("different-username", sshPrivateKey, sshServerAddr)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(hostKey).To(Equal(key))
 			})
@@ -47,14 +47,14 @@ var _ = Describe("HostKeyGetter", func() {
 		Context("failure cases", func() {
 			Context("when parse private key fails", func() {
 				It("returns an error", func() {
-					_, err := hostKeyGetter.Get("%%%", sshServerAddr)
+					_, err := hostKeyGetter.Get("", "%%%", sshServerAddr)
 					Expect(err).To(MatchError("ssh: no key found"))
 				})
 			})
 
 			Context("when dial fails", func() {
 				It("returns an error", func() {
-					_, err := hostKeyGetter.Get(sshPrivateKey, "some-bad-url")
+					_, err := hostKeyGetter.Get("", sshPrivateKey, "some-bad-url")
 					Expect(err).To(MatchError("dial tcp: address some-bad-url: missing port in address"))
 				})
 			})
