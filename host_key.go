@@ -6,19 +6,19 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-type HostKeyGetter struct {
+type HostKey struct {
 	publicKeyChannel chan ssh.PublicKey
 	dialErrorChannel chan error
 }
 
-func NewHostKeyGetter() HostKeyGetter {
-	return HostKeyGetter{
+func NewHostKey() HostKey {
+	return HostKey{
 		publicKeyChannel: make(chan ssh.PublicKey),
 		dialErrorChannel: make(chan error),
 	}
 }
 
-func (h HostKeyGetter) Get(username, privateKey, serverURL string) (ssh.PublicKey, error) {
+func (h HostKey) Get(username, privateKey, serverURL string) (ssh.PublicKey, error) {
 	if username == "" {
 		username = "jumpbox"
 	}
@@ -50,7 +50,7 @@ func (h HostKeyGetter) Get(username, privateKey, serverURL string) (ssh.PublicKe
 	return <-h.publicKeyChannel, <-h.dialErrorChannel
 }
 
-func (h HostKeyGetter) keyScanCallback(hostname string, remote net.Addr, key ssh.PublicKey) error {
+func (h HostKey) keyScanCallback(hostname string, remote net.Addr, key ssh.PublicKey) error {
 	h.publicKeyChannel <- key
 	return nil
 }
