@@ -25,8 +25,6 @@ var _ = Describe("Socks5Proxy", func() {
 		serverURL          string
 		httpServerHostPort string
 		httpServer         *httptest.Server
-
-		signer ssh.Signer
 	)
 
 	BeforeEach(func() {
@@ -37,8 +35,7 @@ var _ = Describe("Socks5Proxy", func() {
 
 		serverURL = proxy.StartTestSSHServer(httpServerHostPort, privateKey, "")
 
-		var err error
-		signer, err = ssh.ParsePrivateKey([]byte(privateKey))
+		signer, err := ssh.ParsePrivateKey([]byte(privateKey))
 		Expect(err).NotTo(HaveOccurred())
 
 		hostKey = &fakes.HostKey{}
@@ -177,8 +174,7 @@ var _ = Describe("Socks5Proxy", func() {
 			JustBeforeEach(func() {
 				serverURL = proxy.StartTestSSHServer(httpServerHostPort, privateKey, "custom-username")
 
-				var err error
-				signer, err = ssh.ParsePrivateKey([]byte(privateKey))
+				signer, err := ssh.ParsePrivateKey([]byte(privateKey))
 				Expect(err).NotTo(HaveOccurred())
 
 				hostKey = &fakes.HostKey{}
