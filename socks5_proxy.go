@@ -14,21 +14,19 @@ import (
 
 var netListen = net.Listen
 
-//go:generate counterfeiter . Proxy
-type Proxy interface {
-	Start(string, string) error
-	Addr() (string, error)
+type hostKeyGetter interface {
+	Get(username, privateKey, serverURL string) (ssh.PublicKey, error)
 }
 
 type DialFunc func(network, address string) (net.Conn, error)
 
 type Socks5Proxy struct {
-	hostKeyGetter KeyGetter
+	hostKeyGetter hostKeyGetter
 	port          int
 	started       bool
 }
 
-func NewSocks5Proxy(hostKeyGetter KeyGetter) *Socks5Proxy {
+func NewSocks5Proxy(hostKeyGetter hostKeyGetter) *Socks5Proxy {
 	return &Socks5Proxy{
 		hostKeyGetter: hostKeyGetter,
 		started:       false,

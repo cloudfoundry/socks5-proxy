@@ -6,11 +6,6 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-//go:generate counterfeiter . KeyGetter
-type KeyGetter interface {
-	Get(string, string, string) (ssh.PublicKey, error)
-}
-
 type HostKeyGetter struct {
 	publicKeyChannel chan ssh.PublicKey
 	dialErrorChannel chan error
@@ -23,12 +18,12 @@ func NewHostKeyGetter() HostKeyGetter {
 	}
 }
 
-func (h HostKeyGetter) Get(username, key, serverURL string) (ssh.PublicKey, error) {
+func (h HostKeyGetter) Get(username, privateKey, serverURL string) (ssh.PublicKey, error) {
 	if username == "" {
 		username = "jumpbox"
 	}
 
-	signer, err := ssh.ParsePrivateKey([]byte(key))
+	signer, err := ssh.ParsePrivateKey([]byte(privateKey))
 	if err != nil {
 		return nil, err
 	}
