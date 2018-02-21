@@ -5,7 +5,7 @@
   branch = "master"
   name = "github.com/genevieve/go-socks5"
   packages = ["."]
-  revision = "f07e0bb84629ba30f60da69274cd1d9dbb4a1d08"
+  revision = "54f73bdb8a8e85a6611d3d29ab9bbf98c2a060d7"
 
 [[projects]]
   branch = "master"
