@@ -10,7 +10,7 @@ import (
 	"time"
 
 	proxy "github.com/cloudfoundry/socks5-proxy"
-	"github.com/cloudfoundry/socks5-proxy/fakes"
+	"github.com/cloudfoundry/socks5-proxy/socks5-proxyfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"golang.org/x/crypto/ssh"
@@ -20,7 +20,7 @@ import (
 var _ = Describe("Socks5Proxy", func() {
 	var (
 		socks5Proxy   *proxy.Socks5Proxy
-		hostKeyGetter *fakes.FakeKeyGetter
+		hostKeyGetter *socks5proxyfakes.FakeKeyGetter
 
 		sshServerURL       string
 		httpServerHostPort string
@@ -41,7 +41,7 @@ var _ = Describe("Socks5Proxy", func() {
 		signer, err = ssh.ParsePrivateKey([]byte(sshPrivateKey))
 		Expect(err).NotTo(HaveOccurred())
 
-		hostKeyGetter = &fakes.FakeKeyGetter{}
+		hostKeyGetter = &socks5proxyfakes.FakeKeyGetter{}
 		hostKeyGetter.GetReturns(signer.PublicKey(), nil)
 
 		socks5Proxy = proxy.NewSocks5Proxy(hostKeyGetter)
@@ -66,7 +66,8 @@ var _ = Describe("Socks5Proxy", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(hostKeyGetter.GetCallCount()).To(Equal(1))
-			key, url := hostKeyGetter.GetArgsForCall(0)
+			username, key, url := hostKeyGetter.GetArgsForCall(0)
+			Expect(username).To(Equal("jumpbox"))
 			Expect(key).To(Equal(sshPrivateKey))
 			Expect(url).To(Equal(sshServerURL))
 
@@ -123,50 +124,90 @@ var _ = Describe("Socks5Proxy", func() {
 	})
 
 	Describe("Dialer", func() {
-		It("returns a dialer that proxies to the jumpbox", func() {
-			dialer, err := socks5Proxy.Dialer(sshPrivateKey, sshServerURL)
-			Expect(err).NotTo(HaveOccurred())
+		Context("When empty username is given", func() {
 
-			Expect(hostKeyGetter.GetCallCount()).To(Equal(1))
-			key, url := hostKeyGetter.GetArgsForCall(0)
-			Expect(key).To(Equal(sshPrivateKey))
-			Expect(url).To(Equal(sshServerURL))
+			It("returns a dialer that proxies to the jumpbox with user 'jumpbox'", func() {
+				dialer, err := socks5Proxy.Dialer("", sshPrivateKey, sshServerURL)
+				Expect(err).NotTo(HaveOccurred())
 
-			conn, err := dialer("tcp", httpServerHostPort)
-			Expect(err).NotTo(HaveOccurred())
+				Expect(hostKeyGetter.GetCallCount()).To(Equal(1))
+				username, key, url := hostKeyGetter.GetArgsForCall(0)
+				Expect(username).To(Equal("jumpbox"))
+				Expect(key).To(Equal(sshPrivateKey))
+				Expect(url).To(Equal(sshServerURL))
 
-			_, err = conn.Write([]byte("GET / HTTP/1.0\r\n\r\n"))
-			Expect(err).NotTo(HaveOccurred())
-			defer conn.Close()
+				conn, err := dialer("tcp", httpServerHostPort)
+				Expect(err).NotTo(HaveOccurred())
 
-			status, err := bufio.NewReader(conn).ReadString('\n')
-			Expect(status).To(Equal("HTTP/1.0 200 OK\r\n"))
+				_, err = conn.Write([]byte("GET / HTTP/1.0\r\n\r\n"))
+				Expect(err).NotTo(HaveOccurred())
+				defer conn.Close()
+
+				status, err := bufio.NewReader(conn).ReadString('\n')
+				Expect(status).To(Equal("HTTP/1.0 200 OK\r\n"))
+			})
+
+			Context("failure cases", func() {
+				Context("when it cannot parse the private key", func() {
+					It("returns an error", func() {
+						_, err := socks5Proxy.Dialer("", "some-bad-private-key", sshServerURL)
+						Expect(err).To(MatchError("parse private key: ssh: no key found"))
+					})
+				})
+
+				Context("when it cannot get the host key", func() {
+					BeforeEach(func() {
+						hostKeyGetter.GetReturns(nil, errors.New("banana"))
+					})
+
+					It("returns an error", func() {
+						_, err := socks5Proxy.Dialer("", sshPrivateKey, sshServerURL)
+						Expect(err).To(MatchError("get host key: banana"))
+					})
+				})
+
+				Context("when it cannot dial the jumpbox url", func() {
+					It("returns an error", func() {
+						_, err := socks5Proxy.Dialer("", sshPrivateKey, "some-bad-url")
+						Expect(err).To(MatchError("ssh dial: dial tcp: address some-bad-url: missing port in address"))
+					})
+				})
+
+			})
 		})
+		Context("When a custom username is given", func() {
+			JustBeforeEach(func() {
+				sshServerURL = proxy.StartTestSSHServer(httpServerHostPort, sshPrivateKey, "custom-username")
 
-		Context("failure cases", func() {
-			Context("when it cannot parse the private key", func() {
-				It("returns an error", func() {
-					_, err := socks5Proxy.Dialer("some-bad-private-key", sshServerURL)
-					Expect(err).To(MatchError("parse private key: ssh: no key found"))
-				})
+				var err error
+				signer, err = ssh.ParsePrivateKey([]byte(sshPrivateKey))
+				Expect(err).NotTo(HaveOccurred())
+
+				hostKeyGetter = &socks5proxyfakes.FakeKeyGetter{}
+				hostKeyGetter.GetReturns(signer.PublicKey(), nil)
+
+				socks5Proxy = proxy.NewSocks5Proxy(hostKeyGetter)
 			})
 
-			Context("when it cannot get the host key", func() {
-				BeforeEach(func() {
-					hostKeyGetter.GetReturns(nil, errors.New("banana"))
-				})
+			It("returns a dialer that proxies to the jumpbox with a custom user", func() {
+				dialer, err := socks5Proxy.Dialer("custom-username", sshPrivateKey, sshServerURL)
+				Expect(err).NotTo(HaveOccurred())
 
-				It("returns an error", func() {
-					_, err := socks5Proxy.Dialer(sshPrivateKey, sshServerURL)
-					Expect(err).To(MatchError("get host key: banana"))
-				})
-			})
+				Expect(hostKeyGetter.GetCallCount()).To(Equal(1))
+				username, key, url := hostKeyGetter.GetArgsForCall(0)
+				Expect(username).To(Equal("custom-username"))
+				Expect(key).To(Equal(sshPrivateKey))
+				Expect(url).To(Equal(sshServerURL))
 
-			Context("when it cannot dial the jumpbox url", func() {
-				It("returns an error", func() {
-					_, err := socks5Proxy.Dialer(sshPrivateKey, "some-bad-url")
-					Expect(err).To(MatchError("ssh dial: dial tcp: address some-bad-url: missing port in address"))
-				})
+				conn, err := dialer("tcp", httpServerHostPort)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = conn.Write([]byte("GET / HTTP/1.0\r\n\r\n"))
+				Expect(err).NotTo(HaveOccurred())
+				defer conn.Close()
+
+				status, err := bufio.NewReader(conn).ReadString('\n')
+				Expect(status).To(Equal("HTTP/1.0 200 OK\r\n"))
 			})
 		})
 	})
