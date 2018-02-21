@@ -102,11 +102,7 @@ func (s *Socks5Proxy) StartWithDialer(dialer DialFunc) error {
 	}
 
 	go func() {
-		err = server.ListenAndServe("tcp", fmt.Sprintf("127.0.0.1:%d", s.port))
-		if err != nil {
-			// untested; commands that require the proxy will return errors
-			fmt.Printf("socks5 proxy: %s", err.Error())
-		}
+		server.ListenAndServe("tcp", fmt.Sprintf("127.0.0.1:%d", s.port))
 	}()
 
 	s.started = true
