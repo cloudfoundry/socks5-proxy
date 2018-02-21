@@ -24,11 +24,10 @@ var _ = Describe("Socks5Proxy", func() {
 
 		serverURL          string
 		httpServerHostPort string
-		httpServer         *httptest.Server
 	)
 
 	BeforeEach(func() {
-		httpServer = httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		httpServer := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			rw.WriteHeader(http.StatusOK)
 		}))
 		httpServerHostPort = strings.Split(httpServer.URL, "http://")[1]
