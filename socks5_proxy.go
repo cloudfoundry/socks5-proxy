@@ -10,6 +10,7 @@ import (
 
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/context"
+	"log"
 )
 
 var netListen = net.Listen
@@ -24,12 +25,14 @@ type Socks5Proxy struct {
 	hostKey hostKey
 	port    int
 	started bool
+	logger  *log.Logger
 }
 
-func NewSocks5Proxy(hostKey hostKey) *Socks5Proxy {
+func NewSocks5Proxy(hostKey hostKey, logger *log.Logger) *Socks5Proxy {
 	return &Socks5Proxy{
 		hostKey: hostKey,
 		started: false,
+		logger:  logger,
 	}
 }
 
@@ -87,6 +90,7 @@ func (s *Socks5Proxy) StartWithDialer(dialer DialFunc) error {
 		Dial: func(ctx context.Context, network, addr string) (net.Conn, error) {
 			return dialer(network, addr)
 		},
+		Logger: s.logger,
 	}
 
 	server, err := socks5.New(conf)
