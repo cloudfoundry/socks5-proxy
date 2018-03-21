@@ -6,11 +6,12 @@ import (
 	"net"
 	"strconv"
 
-	socks5 "github.com/genevieve/go-socks5"
+	socks5 "github.com/cloudfoundry/go-socks5"
+
+	"log"
 
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/context"
-	"log"
 )
 
 var netListen = net.Listen
