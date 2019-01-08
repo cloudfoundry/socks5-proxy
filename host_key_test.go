@@ -58,6 +58,23 @@ var _ = Describe("HostKey", func() {
 					Expect(err).To(MatchError("dial tcp: address some-bad-url: missing port in address"))
 				})
 			})
+
+			Context("when the wrong private key is used", func() {
+				It("returns an error", func() {
+					_, err := hostKey.Get("", anotherPrivateKey, sshServerAddr)
+					Expect(err).To(MatchError(ContainSubstring("ssh: handshake failed")))
+				})
+			})
+
+			Context("when the wrong private key is used twice", func() {
+				It("returns an error twice", func() {
+					_, firstErr := hostKey.Get("", anotherPrivateKey, sshServerAddr)
+					Expect(firstErr).To(MatchError(ContainSubstring("ssh: handshake failed")))
+
+					_, secondErr := hostKey.Get("", anotherPrivateKey, sshServerAddr)
+					Expect(secondErr).To(MatchError(ContainSubstring("ssh: handshake failed")))
+				})
+			})
 		})
 	})
 })
