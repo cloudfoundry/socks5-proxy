@@ -1,6 +1,8 @@
 package proxy_test
 
 import (
+	"time"
+
 	proxy "github.com/cloudfoundry/socks5-proxy"
 	"golang.org/x/crypto/ssh"
 
@@ -14,14 +16,16 @@ var _ = Describe("HostKey", func() {
 			hostKey       proxy.HostKey
 			key           ssh.PublicKey
 			sshServerAddr string
+			interval      time.Duration
 		)
 
 		BeforeEach(func() {
+			interval = 10 * time.Millisecond
 			signer, err := ssh.ParsePrivateKey([]byte(privateKey))
 			Expect(err).NotTo(HaveOccurred())
 			key = signer.PublicKey()
 
-			sshServerAddr = proxy.StartTestSSHServer("", privateKey, "")
+			sshServerAddr = proxy.StartTestSSHServer("", privateKey, "", interval)
 
 			hostKey = proxy.NewHostKey()
 		})
@@ -34,7 +38,7 @@ var _ = Describe("HostKey", func() {
 
 		Context("when a username has been set", func() {
 			BeforeEach(func() {
-				sshServerAddr = proxy.StartTestSSHServer("", privateKey, "different-username")
+				sshServerAddr = proxy.StartTestSSHServer("", privateKey, "different-username", interval)
 				hostKey = proxy.NewHostKey()
 			})
 

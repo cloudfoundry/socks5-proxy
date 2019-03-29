@@ -6,6 +6,7 @@ import (
 	"net"
 	"strconv"
 	"sync"
+	"time"
 
 	socks5 "github.com/cloudfoundry/go-socks5"
 
@@ -85,6 +86,32 @@ func (s *Socks5Proxy) Dialer(username, key, url string) (DialFunc, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ssh dial: %s", err)
 	}
+
+	errChan := make(chan error)
+
+	go func(cl *ssh.Client, errChan chan error) {
+		const keepAliveInterval = time.Millisecond
+		t := time.NewTicker(keepAliveInterval)
+		for {
+			select {
+			case <-t.C:
+				_, _, err := cl.SendRequest("bosh-cli-keep-alive@bosh.io", true, nil)
+				if err != nil {
+					errChan <- err
+				}
+			}
+		}
+	}(conn, errChan)
+
+	go func(errChan chan error) {
+		for {
+			select {
+			case err := <-errChan:
+				fmt.Printf("error sending ssh keep-alive: %s", err)
+				// s.logger.Printf("error sending ssh keep-alive: %s", err)
+			}
+		}
+	}(errChan)
 
 	return conn.Dial, nil
 }

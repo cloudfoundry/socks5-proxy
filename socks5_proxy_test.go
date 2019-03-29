@@ -24,15 +24,17 @@ var _ = Describe("Socks5Proxy", func() {
 
 		serverURL          string
 		httpServerHostPort string
+		interval           time.Duration
 	)
 
 	BeforeEach(func() {
+		interval = 16 * time.Millisecond
 		httpServer := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			rw.WriteHeader(http.StatusOK)
 		}))
 		httpServerHostPort = strings.Split(httpServer.URL, "http://")[1]
 
-		serverURL = proxy.StartTestSSHServer(httpServerHostPort, privateKey, "")
+		serverURL = proxy.StartTestSSHServer(httpServerHostPort, privateKey, "", interval)
 
 		signer, err := ssh.ParsePrivateKey([]byte(privateKey))
 		Expect(err).NotTo(HaveOccurred())
@@ -121,7 +123,7 @@ var _ = Describe("Socks5Proxy", func() {
 
 		Context("when a custom username is given", func() {
 			JustBeforeEach(func() {
-				serverURL = proxy.StartTestSSHServer(httpServerHostPort, privateKey, "custom-username")
+				serverURL = proxy.StartTestSSHServer(httpServerHostPort, privateKey, "custom-username", interval)
 
 				signer, err := ssh.ParsePrivateKey([]byte(privateKey))
 				Expect(err).NotTo(HaveOccurred())
@@ -165,7 +167,7 @@ var _ = Describe("Socks5Proxy", func() {
 
 	Describe("Dialer", func() {
 		Context("when empty username is given", func() {
-			It("returns a dialer that proxies to the jumpbox with user 'jumpbox'", func() {
+			FIt("returns a dialer that proxies to the jumpbox with user 'jumpbox'", func() {
 				dialer, err := socks5Proxy.Dialer("", privateKey, serverURL)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -182,6 +184,16 @@ var _ = Describe("Socks5Proxy", func() {
 				defer conn.Close()
 
 				status, err := bufio.NewReader(conn).ReadString('\n')
+				Expect(status).To(Equal("HTTP/1.0 200 OK\r\n"))
+
+				conn, err = dialer("tcp", httpServerHostPort)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = conn.Write([]byte("GET / HTTP/1.0\r\n\r\n"))
+				Expect(err).NotTo(HaveOccurred())
+				defer conn.Close()
+
+				status, err = bufio.NewReader(conn).ReadString('\n')
 				Expect(status).To(Equal("HTTP/1.0 200 OK\r\n"))
 			})
 
@@ -216,7 +228,7 @@ var _ = Describe("Socks5Proxy", func() {
 
 		Context("when a custom username is given", func() {
 			JustBeforeEach(func() {
-				serverURL = proxy.StartTestSSHServer(httpServerHostPort, privateKey, "custom-username")
+				serverURL = proxy.StartTestSSHServer(httpServerHostPort, privateKey, "custom-username", interval)
 
 				signer, err := ssh.ParsePrivateKey([]byte(privateKey))
 				Expect(err).NotTo(HaveOccurred())

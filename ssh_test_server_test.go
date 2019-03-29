@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"time"
 
 	proxy "github.com/cloudfoundry/socks5-proxy"
 	. "github.com/onsi/ginkgo"
@@ -15,9 +16,11 @@ var _ = Describe("StartTestSSHServer", func() {
 	var (
 		hostPort     string
 		clientConfig *ssh.ClientConfig
+		interval     time.Duration
 	)
 
 	BeforeEach(func() {
+		interval = 10 * time.Millisecond
 		httpServer := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			rw.WriteHeader(http.StatusOK)
 		}))
@@ -36,7 +39,7 @@ var _ = Describe("StartTestSSHServer", func() {
 	})
 
 	It("accepts multiple requests", func() {
-		url := proxy.StartTestSSHServer(hostPort, privateKey, "")
+		url := proxy.StartTestSSHServer(hostPort, privateKey, "", interval)
 
 		conn1, err := ssh.Dial("tcp", url, clientConfig)
 		Expect(err).NotTo(HaveOccurred())
