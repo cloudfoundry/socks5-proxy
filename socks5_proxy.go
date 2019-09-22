@@ -19,7 +19,7 @@ import (
 var netListen = net.Listen
 
 type hostKey interface {
-	Get(username, privateKey, serverURL string) (ssh.PublicKey, error)
+	Get(username, serverURL string, auth ssh.AuthMethod) (ssh.PublicKey, error)
 }
 
 type DialFunc func(network, address string) (net.Conn, error)
@@ -42,12 +42,12 @@ func NewSocks5Proxy(hostKey hostKey, logger *log.Logger, keepAliveInterval time.
 	}
 }
 
-func (s *Socks5Proxy) Start(username, key, url string) error {
+func (s *Socks5Proxy) Start(username, url string, auth ssh.AuthMethod) error {
 	if s.isStarted() {
 		return nil
 	}
 
-	dialer, err := s.Dialer(username, key, url)
+	dialer, err := s.Dialer(username, url, auth)
 	if err != nil {
 		return err
 	}
@@ -67,22 +67,17 @@ func (s *Socks5Proxy) isStarted() bool {
 	return s.started
 }
 
-func (s *Socks5Proxy) Dialer(username, key, url string) (DialFunc, error) {
+func (s *Socks5Proxy) Dialer(username, url string, auth ssh.AuthMethod) (DialFunc, error) {
 	if username == "" {
 		username = "jumpbox"
 	}
 
-	signer, err := ssh.ParsePrivateKey([]byte(key))
-	if err != nil {
-		return nil, fmt.Errorf("parse private key: %s", err)
-	}
-
-	hostKey, err := s.hostKey.Get(username, key, url)
+	hostKey, err := s.hostKey.Get(username, url, auth)
 	if err != nil {
 		return nil, fmt.Errorf("get host key: %s", err)
 	}
 
-	clientConfig := NewSSHClientConfig(username, ssh.FixedHostKey(hostKey), ssh.PublicKeys(signer))
+	clientConfig := NewSSHClientConfig(username, ssh.FixedHostKey(hostKey), auth)
 
 	conn, err := ssh.Dial("tcp", url, clientConfig)
 	if err != nil {

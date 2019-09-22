@@ -2,7 +2,6 @@ package proxy
 
 import (
 	"net"
-
 	"golang.org/x/crypto/ssh"
 )
 
@@ -12,7 +11,7 @@ func NewHostKey() HostKey {
 	return HostKey{}
 }
 
-func (h HostKey) Get(username, privateKey, serverURL string) (ssh.PublicKey, error) {
+func (h HostKey) Get(username, serverURL string, auth ssh.AuthMethod) (ssh.PublicKey, error) {
 	publicKeyChannel := make(chan ssh.PublicKey, 1)
 	dialErrorChannel := make(chan error)
 
@@ -20,12 +19,7 @@ func (h HostKey) Get(username, privateKey, serverURL string) (ssh.PublicKey, err
 		username = "jumpbox"
 	}
 
-	signer, err := ssh.ParsePrivateKey([]byte(privateKey))
-	if err != nil {
-		return nil, err
-	}
-
-	clientConfig := NewSSHClientConfig(username, keyScanCallback(publicKeyChannel), ssh.PublicKeys(signer))
+	clientConfig := NewSSHClientConfig(username, keyScanCallback(publicKeyChannel), auth)
 
 	go func() {
 		conn, err := ssh.Dial("tcp", serverURL, clientConfig)
