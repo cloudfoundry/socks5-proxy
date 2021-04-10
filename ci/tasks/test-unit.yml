@@ -1,0 +1,8 @@
+---
+platform: linux
+
+inputs:
+- name: socks5-proxy
+
+run:
+  path: socks5-proxy/ci/tasks/test-unit.sh

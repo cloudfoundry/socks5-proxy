@@ -1,0 +1,49 @@
+---
+resources:
+  - name: docker-image
+    type: registry-image
+    source:
+      repository: golang:1.15
+      username: ((docker_username))
+      password: ((docker_password))
+  - name: socks5-proxy
+    type: git
+    source:
+      uri: git@github.com:cloudfoundry/socks5-proxy.git
+      private_key: ((github_deploy_key_socks5_proxy.private_key))
+  - name: weekly
+    type: time
+    source:
+      start: 1:00
+      stop: 1:30
+      days: [Saturday]
+
+jobs:
+  - name: unit-tests
+    plan:
+      - in_parallel:
+          - get: socks5-proxy
+            trigger: true
+          - get: docker-image
+      - task: test-unit
+        file: socks5-proxy/ci/tasks/test-unit.yml
+        image: docker-image
+
+  - name: bump-deps
+    serial: true
+    plan:
+      - in_parallel:
+          - get: weekly
+            trigger: true
+          - get: socks5-proxy
+          - get: docker-image
+      - task: bump-deps
+        file: socks5-proxy/ci/tasks/bump-deps.yml
+      - task: test-unit
+        file: socks5-proxy/ci/tasks/test-unit.yml
+        image: docker-image
+        input_mapping:
+          socks5-proxy: bumped-socks5-proxy
+      - put: socks5-proxy
+        params:
+          repository: bumped-socks5-proxy
