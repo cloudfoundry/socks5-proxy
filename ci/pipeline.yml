@@ -10,7 +10,7 @@ resources:
   - name: socks5-proxy
     type: git
     source:
-      branch: master
+      branch: main
       uri: git@github.com:cloudfoundry/socks5-proxy.git
       private_key: ((github_deploy_key_socks5_proxy.private_key))
   - name: weekly
@@ -18,7 +18,15 @@ resources:
     source:
       start: 1:00
       stop: 1:30
-      days: [Saturday]
+      days: [ Saturday ]
+  - name: version
+    type: semver
+    source:
+      driver: git
+      uri: git@github.com:cloudfoundry/socks5-proxy.git
+      branch: version
+      file: version
+      private_key: ((github_deploy_key_socks5_proxy.private_key))
 
 jobs:
   - name: unit-tests
@@ -50,3 +58,22 @@ jobs:
       - put: socks5-proxy
         params:
           repository: bumped-socks5-proxy
+  - name: release-patch
+    serial: true
+    plan:
+      - get: socks5-proxy
+        passed:
+          - bump-deps
+        trigger: true
+      - get: version
+        params:
+          bump: patch
+      - put: version
+        params:
+          file: version/version
+      - put: socks5-proxy
+        params:
+          only_tag: true
+          repository: socks5-proxy
+          tag: version/version
+          tag_prefix: v
