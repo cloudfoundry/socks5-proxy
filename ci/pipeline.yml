@@ -13,6 +13,10 @@ resources:
       branch: main
       uri: git@github.com:cloudfoundry/socks5-proxy.git
       private_key: ((github_deploy_key_socks5_proxy.private_key))
+  - name: golang-release
+    type: git
+    source:
+      uri: https://github.com/bosh-packages/golang-release.git
   - name: weekly
     type: time
     source:
@@ -46,10 +50,14 @@ jobs:
           - get: weekly
             trigger: true
           - get: socks5-proxy
+          - get: golang-release
           - get: docker-image
       - task: bump-deps
-        file: socks5-proxy/ci/tasks/bump-deps.yml
-        image: docker-image
+        file: golang-release/ci/tasks/shared/bump-deps.yml
+        input_mapping:
+          input_repo: socks5-proxy
+        output_mapping:
+          output_repo: bumped-socks5-proxy
       - task: test-unit
         file: socks5-proxy/ci/tasks/test-unit.yml
         image: docker-image
@@ -58,6 +66,7 @@ jobs:
       - put: socks5-proxy
         params:
           repository: bumped-socks5-proxy
+          rebase: true
   - name: release-patch
     serial: true
     plan:
