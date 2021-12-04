@@ -6,8 +6,8 @@ require (
 	github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e
 	github.com/onsi/ginkgo v1.4.1-0.20170725030731-8382b23d18db
 	github.com/onsi/gomega v1.2.0
-	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871
-	golang.org/x/net v0.0.0-20211123203042-d83791d6bcd9
+	golang.org/x/crypto v0.0.0-20211202192323-5770296d904e
+	golang.org/x/net v0.0.0-20211203184738-4852103109b8
 )
 
 require (
