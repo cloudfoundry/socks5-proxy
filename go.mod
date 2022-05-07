@@ -12,7 +12,7 @@ require (
 
 require (
 	github.com/golang/protobuf v1.5.2 // indirect
-	golang.org/x/sys v0.0.0-20220429233432-b5fbb4746d32 // indirect
+	golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.0.0-20170721122051-25c4ec802a7d // indirect
