@@ -7,7 +7,7 @@ require (
 	github.com/onsi/ginkgo v1.4.1-0.20170725030731-8382b23d18db
 	github.com/onsi/gomega v1.2.0
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
-	golang.org/x/net v0.0.0-20220526153639-5463443f8c37
+	golang.org/x/net v0.0.0-20220531201128-c960675eff93
 )
 
 require (
