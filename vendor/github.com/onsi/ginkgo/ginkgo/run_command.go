@@ -5,14 +5,19 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"regexp"
+	"runtime"
+	"strings"
 	"time"
+
+	"io/ioutil"
+	"path/filepath"
 
 	"github.com/onsi/ginkgo/config"
 	"github.com/onsi/ginkgo/ginkgo/interrupthandler"
 	"github.com/onsi/ginkgo/ginkgo/testrunner"
+	colorable "github.com/onsi/ginkgo/reporters/stenographer/support/go-colorable"
 	"github.com/onsi/ginkgo/types"
-	"io/ioutil"
-	"path/filepath"
 )
 
 func BuildRunCommand() *Command {
@@ -49,6 +54,28 @@ type SpecRunner struct {
 func (r *SpecRunner) RunSpecs(args []string, additionalArgs []string) {
 	r.commandFlags.computeNodes()
 	r.notifier.VerifyNotificationsAreAvailable()
+
+	deprecationTracker := types.NewDeprecationTracker()
+
+	if r.commandFlags.ParallelStream && (runtime.GOOS != "windows") {
+		deprecationTracker.TrackDeprecation(types.Deprecation{
+			Message: "--stream is deprecated and will be removed in Ginkgo 2.0",
+			DocLink: "removed--stream",
+			Version: "1.16.0",
+		})
+	}
+
+	if r.commandFlags.Notify {
+		deprecationTracker.TrackDeprecation(types.Deprecation{
+			Message: "--notify is deprecated and will be removed in Ginkgo 2.0",
+			DocLink: "removed--notify",
+			Version: "1.16.0",
+		})
+	}
+
+	if deprecationTracker.DidTrackDeprecations() {
+		fmt.Fprintln(colorable.NewColorableStderr(), deprecationTracker.DeprecationsReport())
+	}
 
 	suites, skippedPackages := findSuites(args, r.commandFlags.Recurse, r.commandFlags.SkipPackage, true)
 	if len(skippedPackages) > 0 {
@@ -102,11 +129,18 @@ func (r *SpecRunner) RunSpecs(args []string, additionalArgs []string) {
 		runResult, numSuites = r.suiteRunner.RunSuites(randomizedRunners, r.commandFlags.NumCompilers, r.commandFlags.KeepGoing, nil)
 	}
 
+	for _, runner := range runners {
+		runner.CleanUp()
+	}
+
 	if r.isInCoverageMode() {
 		if r.getOutputDir() != "" {
 			// If coverprofile is set, combine coverages
 			if r.getCoverprofile() != "" {
-				r.combineCoverprofiles(runners)
+				if err := r.combineCoverprofiles(runners); err != nil {
+					fmt.Println(err.Error())
+					os.Exit(1)
+				}
 			} else {
 				// Just move them
 				r.moveCoverprofiles(runners)
@@ -114,14 +148,10 @@ func (r *SpecRunner) RunSpecs(args []string, additionalArgs []string) {
 		}
 	}
 
-	for _, runner := range runners {
-		runner.CleanUp()
-	}
-
 	fmt.Printf("\nGinkgo ran %d %s in %s\n", numSuites, pluralizedWord("suite", "suites", numSuites), time.Since(t))
 
 	if runResult.Passed {
-		if runResult.HasProgrammaticFocus {
+		if runResult.HasProgrammaticFocus && strings.TrimSpace(os.Getenv("GINKGO_EDITOR_INTEGRATION")) == "" {
 			fmt.Printf("Test Suite Passed\n")
 			fmt.Printf("Detected Programmatic Focus - setting exit status to %d\n", types.GINKGO_FOCUS_EXIT_CODE)
 			os.Exit(types.GINKGO_FOCUS_EXIT_CODE)
@@ -131,6 +161,7 @@ func (r *SpecRunner) RunSpecs(args []string, additionalArgs []string) {
 		}
 	} else {
 		fmt.Printf("Test Suite Failed\n")
+		emitRCAdvertisement()
 		os.Exit(1)
 	}
 }
@@ -149,38 +180,56 @@ func (r *SpecRunner) moveCoverprofiles(runners []*testrunner.TestRunner) {
 }
 
 // Combines all generated profiles in the specified directory
-func (r *SpecRunner) combineCoverprofiles(runners []*testrunner.TestRunner) {
+func (r *SpecRunner) combineCoverprofiles(runners []*testrunner.TestRunner) error {
 
 	path, _ := filepath.Abs(r.getOutputDir())
+	if !fileExists(path) {
+		return fmt.Errorf("Unable to create combined profile, outputdir does not exist: %s", r.getOutputDir())
+	}
 
 	fmt.Println("path is " + path)
-	os.MkdirAll(path, os.ModePerm)
 
-	combined, err := os.OpenFile(filepath.Join(path, r.getCoverprofile()),
-		os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
+	combined, err := os.OpenFile(
+		filepath.Join(path, r.getCoverprofile()),
+		os.O_WRONLY|os.O_CREATE,
+		0666,
+	)
 
 	if err != nil {
 		fmt.Printf("Unable to create combined profile, %v\n", err)
-		return
+		return nil // non-fatal error
 	}
 
-	for _, runner := range runners {
+	modeRegex := regexp.MustCompile(`^mode: .*\n`)
+	for index, runner := range runners {
 		contents, err := ioutil.ReadFile(runner.CoverageFile)
 
 		if err != nil {
 			fmt.Printf("Unable to read coverage file %s to combine, %v\n", runner.CoverageFile, err)
-			return
+			return nil // non-fatal error
+		}
+
+		// remove the cover mode line from every file
+		// except the first one
+		if index > 0 {
+			contents = modeRegex.ReplaceAll(contents, []byte{})
 		}
 
 		_, err = combined.Write(contents)
 
+		// Add a newline to the end of every file if missing.
+		if err == nil && len(contents) > 0 && contents[len(contents)-1] != '\n' {
+			_, err = combined.Write([]byte("\n"))
+		}
+
 		if err != nil {
 			fmt.Printf("Unable to append to coverprofile, %v\n", err)
-			return
+			return nil // non-fatal error
 		}
 	}
 
 	fmt.Println("All profiles combined")
+	return nil
 }
 
 func (r *SpecRunner) isInCoverageMode() bool {
