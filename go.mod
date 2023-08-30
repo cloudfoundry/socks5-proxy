@@ -1,6 +1,8 @@
 module github.com/cloudfoundry/socks5-proxy
 
-go 1.20
+go 1.21
+
+toolchain go1.21.0
 
 require (
 	github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e
