@@ -42,6 +42,10 @@ func NewSocks5Proxy(hostKey hostKey, logger *log.Logger, keepAliveInterval time.
 	}
 }
 
+func (s *Socks5Proxy) SetListenPort(port int) {
+	s.port = port
+}
+
 func (s *Socks5Proxy) Start(username, key, url string) error {
 	if s.isStarted() {
 		return nil
