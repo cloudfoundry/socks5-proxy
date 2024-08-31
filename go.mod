@@ -3,7 +3,7 @@ module github.com/cloudfoundry/socks5-proxy
 go 1.21.0
 
 require (
-	github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e
+	github.com/cloudfoundry/go-socks5 v0.0.0-20240831012420-2590b55236ee
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.10.1
 	golang.org/x/crypto v0.26.0
