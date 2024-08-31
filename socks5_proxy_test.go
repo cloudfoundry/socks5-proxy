@@ -51,9 +51,6 @@ var _ = Describe("Socks5Proxy", func() {
 				err := socks5Proxy.Start("", privateKey, serverURL)
 				Expect(err).NotTo(HaveOccurred())
 
-				// Wait for socks5 proxy to start
-				time.Sleep(1 * time.Second)
-
 				socks5Addr, err := socks5Proxy.Addr()
 				Expect(err).NotTo(HaveOccurred())
 
@@ -81,9 +78,6 @@ var _ = Describe("Socks5Proxy", func() {
 					serverURL := proxy.StartTestSSHServer(httpServerHostPort, privateKey, "")
 					err := socks5Proxy.Start("", privateKey, serverURL)
 					Expect(err).NotTo(HaveOccurred())
-
-					// Wait for socks5 proxy to start
-					time.Sleep(1 * time.Second)
 
 					err = socks5Proxy.Start("", privateKey, serverURL)
 					Expect(err).NotTo(HaveOccurred())
@@ -134,9 +128,6 @@ var _ = Describe("Socks5Proxy", func() {
 				serverURL := proxy.StartTestSSHServer(httpServerHostPort, privateKey, "custom-username")
 				err := socks5Proxy.Start("custom-username", privateKey, serverURL)
 				Expect(err).NotTo(HaveOccurred())
-
-				// Wait for socks5 proxy to start
-				time.Sleep(1 * time.Second)
 
 				socks5Addr, err := socks5Proxy.Addr()
 				Expect(err).NotTo(HaveOccurred())
@@ -260,7 +251,6 @@ var _ = Describe("Socks5Proxy", func() {
 				err := socks5Proxy.Start("", privateKey, serverURL)
 				Expect(err).NotTo(HaveOccurred())
 
-				time.Sleep(1 * time.Second)
 				addr, err := socks5Proxy.Addr()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(addr).To(MatchRegexp("127.0.0.1:\\d+"))
