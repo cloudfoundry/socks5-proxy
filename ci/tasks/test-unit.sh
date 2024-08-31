@@ -4,4 +4,4 @@ set -euo pipefail
 
 cd socks5-proxy
 
-go run github.com/onsi/ginkgo/ginkgo
+go run github.com/onsi/ginkgo/v2/ginkgo
