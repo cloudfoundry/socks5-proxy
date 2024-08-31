@@ -2,7 +2,7 @@ package proxy_test
 
 import (
 	"github.com/cloudfoundry/socks5-proxy"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"golang.org/x/crypto/ssh"
 	"net"
