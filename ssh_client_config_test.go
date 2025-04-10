@@ -1,12 +1,14 @@
 package proxy_test
 
 import (
-	"github.com/cloudfoundry/socks5-proxy"
+	"net"
+	"time"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"golang.org/x/crypto/ssh"
-	"net"
-	"time"
+
+	proxy "github.com/cloudfoundry/socks5-proxy"
 )
 
 var _ = Describe("NewSSHClientConfig", func() {
