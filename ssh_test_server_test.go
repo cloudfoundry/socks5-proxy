@@ -5,10 +5,11 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	proxy "github.com/cloudfoundry/socks5-proxy"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"golang.org/x/crypto/ssh"
+
+	proxy "github.com/cloudfoundry/socks5-proxy"
 )
 
 var _ = Describe("StartTestSSHServer", func() {
@@ -40,10 +41,10 @@ var _ = Describe("StartTestSSHServer", func() {
 
 		conn1, err := ssh.Dial("tcp", url, clientConfig)
 		Expect(err).NotTo(HaveOccurred())
-		conn1.Close()
+		conn1.Close() //nolint:errcheck
 
 		conn2, err := ssh.Dial("tcp", url, clientConfig)
 		Expect(err).NotTo(HaveOccurred())
-		conn2.Close()
+		conn2.Close() //nolint:errcheck
 	})
 })

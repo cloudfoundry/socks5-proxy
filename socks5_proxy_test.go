@@ -9,12 +9,13 @@ import (
 	"strings"
 	"time"
 
-	proxy "github.com/cloudfoundry/socks5-proxy"
-	"github.com/cloudfoundry/socks5-proxy/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"golang.org/x/crypto/ssh"
 	goproxy "golang.org/x/net/proxy"
+
+	proxy "github.com/cloudfoundry/socks5-proxy"
+	"github.com/cloudfoundry/socks5-proxy/fakes"
 )
 
 var _ = Describe("Socks5Proxy", func() {
@@ -67,9 +68,9 @@ var _ = Describe("Socks5Proxy", func() {
 
 				_, err = conn.Write([]byte("GET / HTTP/1.0\r\n\r\n"))
 				Expect(err).NotTo(HaveOccurred())
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
-				status, err := bufio.NewReader(conn).ReadString('\n')
+				status, err := bufio.NewReader(conn).ReadString('\n') //nolint:ineffassign,staticcheck
 				Expect(status).To(Equal("HTTP/1.0 200 OK\r\n"))
 			})
 
@@ -93,9 +94,9 @@ var _ = Describe("Socks5Proxy", func() {
 
 					_, err = conn.Write([]byte("GET / HTTP/1.0\r\n\r\n"))
 					Expect(err).NotTo(HaveOccurred())
-					defer conn.Close()
+					defer conn.Close() //nolint:errcheck
 
-					status, err := bufio.NewReader(conn).ReadString('\n')
+					status, err := bufio.NewReader(conn).ReadString('\n') //nolint:ineffassign,staticcheck
 					Expect(status).To(Equal("HTTP/1.0 200 OK\r\n"))
 				})
 			})
@@ -145,9 +146,9 @@ var _ = Describe("Socks5Proxy", func() {
 
 				_, err = conn.Write([]byte("GET / HTTP/1.0\r\n\r\n"))
 				Expect(err).NotTo(HaveOccurred())
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
-				status, err := bufio.NewReader(conn).ReadString('\n')
+				status, err := bufio.NewReader(conn).ReadString('\n') //nolint:ineffassign,staticcheck
 				Expect(status).To(Equal("HTTP/1.0 200 OK\r\n"))
 			})
 		})
@@ -170,9 +171,9 @@ var _ = Describe("Socks5Proxy", func() {
 
 				_, err = conn.Write([]byte("GET / HTTP/1.0\r\n\r\n"))
 				Expect(err).NotTo(HaveOccurred())
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
-				status, err := bufio.NewReader(conn).ReadString('\n')
+				status, err := bufio.NewReader(conn).ReadString('\n') //nolint:ineffassign,staticcheck
 				Expect(status).To(Equal("HTTP/1.0 200 OK\r\n"))
 			})
 
@@ -233,9 +234,9 @@ var _ = Describe("Socks5Proxy", func() {
 
 				_, err = conn.Write([]byte("GET / HTTP/1.0\r\n\r\n"))
 				Expect(err).NotTo(HaveOccurred())
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
-				status, err := bufio.NewReader(conn).ReadString('\n')
+				status, err := bufio.NewReader(conn).ReadString('\n') //nolint:ineffassign,staticcheck
 				Expect(status).To(Equal("HTTP/1.0 200 OK\r\n"))
 			})
 		})
@@ -289,9 +290,9 @@ var _ = Describe("Socks5Proxy", func() {
 
 			_, err = conn.Write([]byte("GET / HTTP/1.0\r\n\r\n"))
 			Expect(err).NotTo(HaveOccurred())
-			defer conn.Close()
+			defer conn.Close() //nolint:errcheck
 
-			status, err := bufio.NewReader(conn).ReadString('\n')
+			status, err := bufio.NewReader(conn).ReadString('\n') //nolint:ineffassign,staticcheck
 			Expect(status).To(Equal("HTTP/1.0 200 OK\r\n"))
 		})
 	})
