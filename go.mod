@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851
-	github.com/onsi/ginkgo/v2 v2.26.0
+	github.com/onsi/ginkgo/v2 v2.27.1
 	github.com/onsi/gomega v1.38.2
 	golang.org/x/crypto v0.41.0
 	golang.org/x/net v0.43.0
