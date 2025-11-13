@@ -3,9 +3,7 @@ resources:
   - name: docker-image
     type: registry-image
     source:
-      repository: bosh/golang-release
-      username: ((dockerhub_username))
-      password: ((dockerhub_password))
+      repository: ghcr.io/cloudfoundry/bosh/golang-release
   - name: socks5-proxy
     type: git
     source:
