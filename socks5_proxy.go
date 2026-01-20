@@ -17,14 +17,20 @@ import (
 
 var netListen = net.Listen
 
-type hostKey interface {
+// SSHHostKeyFetcher is the interface to get the SSH server jumphost public key
+//
+// The username is the login username to the SSH server
+// The privateKey is the client login private SSH key (PEM-encoded)
+// The serverURL is the IP/hostname and port of the SSH server.
+//   NOTE: The port must always be specified and port 22 is not implicitly assumed. E.g "jumphost:22"
+type SSHHostKeyFetcher interface {
 	Get(username, privateKey, serverURL string) (ssh.PublicKey, error)
 }
 
 type DialFunc func(network, address string) (net.Conn, error)
 
 type Socks5Proxy struct {
-	hostKey           hostKey
+	hostKey           SSHHostKeyFetcher
 	port              int
 	started           bool
 	keepAliveInterval time.Duration
@@ -32,7 +38,7 @@ type Socks5Proxy struct {
 	mtx               sync.Mutex
 }
 
-func NewSocks5Proxy(hostKey hostKey, logger *log.Logger, keepAliveInterval time.Duration) *Socks5Proxy {
+func NewSocks5Proxy(hostKey SSHHostKeyFetcher, logger *log.Logger, keepAliveInterval time.Duration) *Socks5Proxy {
 	return &Socks5Proxy{
 		hostKey:           hostKey,
 		started:           false,
