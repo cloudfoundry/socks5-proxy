@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851
-	github.com/onsi/ginkgo/v2 v2.32.2
+	github.com/onsi/ginkgo/v2 v2.33.0
 	github.com/onsi/gomega v1.40.0
 	golang.org/x/crypto v0.57.0
 	golang.org/x/net v0.59.0
