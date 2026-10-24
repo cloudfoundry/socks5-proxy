@@ -4,6 +4,8 @@ github.com/Masterminds/semver/v3
 # github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851
 ## explicit; go 1.21.0
 github.com/cloudfoundry/go-socks5
+# github.com/gkampitakis/go-snaps v0.5.24
+## explicit; go 1.23
 # github.com/go-logr/logr v1.4.4
 ## explicit; go 1.18
 github.com/go-logr/logr
@@ -45,8 +47,8 @@ github.com/onsi/ginkgo/v2/internal/reporters
 github.com/onsi/ginkgo/v2/internal/testingtproxy
 github.com/onsi/ginkgo/v2/reporters
 github.com/onsi/ginkgo/v2/types
-# github.com/onsi/gomega v1.40.0
-## explicit; go 1.24.0
+# github.com/onsi/gomega v1.44.0
+## explicit; go 1.25.0
 github.com/onsi/gomega
 github.com/onsi/gomega/format
 github.com/onsi/gomega/internal
@@ -58,7 +60,17 @@ github.com/onsi/gomega/matchers/support/goraph/edge
 github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
-# go.yaml.in/yaml/v3 v3.0.4
+# github.com/rogpeppe/go-internal v1.16.0
+## explicit; go 1.25
+# github.com/stretchr/testify v1.12.1
+## explicit; go 1.17
+# github.com/tidwall/gjson v1.20.0
+## explicit; go 1.23
+# github.com/tidwall/match v1.2.0
+## explicit; go 1.15
+# github.com/tidwall/pretty v1.2.2
+## explicit; go 1.16
+# go.yaml.in/yaml/v3 v3.0.5
 ## explicit; go 1.16
 go.yaml.in/yaml/v3
 # golang.org/x/crypto v0.58.0
@@ -129,5 +141,5 @@ golang.org/x/tools/internal/pkgbits
 golang.org/x/tools/internal/stdlib
 golang.org/x/tools/internal/typesinternal
 golang.org/x/tools/internal/versions
-# gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c
-## explicit; go 1.11
+# google.golang.org/protobuf v1.36.12
+## explicit; go 1.23
